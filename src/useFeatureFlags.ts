@@ -18,7 +18,7 @@ type FlagState = {
 
 let initialized = false;
 
-export function useFeatureFlags(passedKey?: string, environment = window.location || 'localhost') {
+export function useFeatureFlags(passedKey?: string, environment = window.location.host || 'localhost') {
   const [state, setState] = useAtom(featureFlagsAtom);
   const [envId, setEnvId] = useState<number | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
