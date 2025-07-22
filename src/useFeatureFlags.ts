@@ -18,7 +18,14 @@ type FlagState = {
 
 let initialized = false;
 
-export function useFeatureFlags(passedKey?: string, environment = window.location.host || 'localhost') {
+export function useFeatureFlags(
+  passedKey?: string,
+  environment = window.location.hostname || 'localhost'
+) {
+  const sanitizedEnvironment = useMemo(
+    () => environment.replace(/:\d+$/, ''),
+    [environment]
+  );
   const [state, setState] = useAtom(featureFlagsAtom);
   const [envId, setEnvId] = useState<number | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -48,7 +55,7 @@ export function useFeatureFlags(passedKey?: string, environment = window.locatio
           'Content-Type': 'application/json',
           'api-key': apiKey,
         },
-        body: JSON.stringify({ environment }),
+        body: JSON.stringify({ environment: sanitizedEnvironment }),
       });
 
       const json = await res.json();
@@ -82,14 +89,14 @@ export function useFeatureFlags(passedKey?: string, environment = window.locatio
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
       if (cleanupRef.current) cleanupRef.current();
     };
-  }, [environment, apiKey]);
+  }, [sanitizedEnvironment, apiKey]);
 
   // Subscribe to flag changes for the correct environment
   useEffect(() => {
     if (!envId) return;
 
     const channel = supabase
-      .channel(`flags-${environment}`)
+      .channel(`flags-${sanitizedEnvironment}`)
       .on(
         'postgres_changes',
         {
