@@ -1,0 +1,29 @@
+{
+  "name": "@geejay/use-feature-flags",
+  "version": "1.0.9",
+  "description": "React hook for feature flag management using Supabase",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+  "build": "rm -rf dist && tsc -p tsconfig.build.json"
+},
+
+  "keywords": ["feature flags", "supabase", "react", "hooks"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/use-feature-flags.git"
+  },
+  "author": "GeeJay",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.52.0",
+    "jotai": "^2.12.5"
+  },
+  "peerDependencies": {
+    "react": ">=16.8"
+  }
+}
