@@ -33,6 +33,14 @@ export function useFeatureFlags(
 
   const apiKey = passedKey;
 
+  useEffect(() => {
+    console.log(
+      '[use-feature-flags] initializing',
+      `environment: ${sanitizedEnvironment}`,
+      `apiKey provided: ${Boolean(apiKey)}`
+    );
+  }, [sanitizedEnvironment, apiKey]);
+
   const supabase = createClient(
   DEFAULT_SUPABASE_URL,
   DEFAULT_SUPABASE_KEY,
@@ -47,6 +55,8 @@ export function useFeatureFlags(
 
   const fetchFlags = async () => {
     setState((prev) => ({ ...prev, loading: true }));
+
+    console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
 
     try {
       const res = await fetch(EDGE_FN_URL, {
@@ -67,7 +77,7 @@ export function useFeatureFlags(
 
       const flags = json.flags || [];
       setState({ flags, loading: false });
-      console.log(`Flags are cool man ${JSON.stringify(flags)}`)
+      console.log('[use-feature-flags] fetched flags', flags);
 
       // Store environment_id from first flag (assumes all have same env)
       if (flags.length > 0 && flags[0].environment_id) {
@@ -122,7 +132,11 @@ export function useFeatureFlags(
   }, [envId]);
 
   return {
-    isActive: (key: string) => state.flags.some((f) => f.key === key && f.enabled === true),
+    isActive: (key: string) => {
+      const active = state.flags.some((f) => f.key === key && f.enabled === true);
+      console.log('[use-feature-flags] isActive', key, active);
+      return active;
+    },
     flags: state.flags,
     loading: state.loading,
   };
