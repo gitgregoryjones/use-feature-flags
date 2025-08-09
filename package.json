@@ -17,8 +17,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "prepack": "npm run build",
-    "publish": "npm version patch && npm publish"
+    "prepack": "npm run build"
+    
   },
   "publishConfig": {
     "access": "public"
