@@ -20,10 +20,13 @@
   "author": "GeeJay",
   "license": "MIT",
   "dependencies": {
-    "@supabase/supabase-js": "^2.52.0",
     "jotai": "^2.12.5"
   },
   "peerDependencies": {
-    "react": ">=16.8"
+    "react": ">=16.8",
+    "@supabase/supabase-js": "^2.52.0"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.52.0"
   }
 }

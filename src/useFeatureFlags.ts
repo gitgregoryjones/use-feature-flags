@@ -1,11 +1,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { FeatureFlag, featureFlagsAtom } from './store';
 import { useAtom } from 'jotai';
+import { getSupabase, DEFAULT_SUPABASE_URL } from './supabaseClient';
 
-export const DEFAULT_SUPABASE_URL = 'https://khppgsehvvlukzfdqbuo.supabase.co';
-export const DEFAULT_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocHBnc2VodnZsdWt6ZmRxYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2ODU1MzQsImV4cCI6MjA2ODI2MTUzNH0.8Z4VY4HFMm95UgO21c-DnDkbLPN_0mbDBZJPExaghDk';
 const EDGE_FN_URL = `${DEFAULT_SUPABASE_URL}/functions/v1/get-feature-flags`;
 
 
@@ -40,18 +38,7 @@ export function useFeatureFlags(
       `apiKey provided: ${Boolean(apiKey)}`
     );
   }, [sanitizedEnvironment, apiKey]);
-
-  const supabase = createClient(
-  DEFAULT_SUPABASE_URL,
-  DEFAULT_SUPABASE_KEY,
-  {
-    global: {
-      headers: {
-        Authorization: `Bearer ${DEFAULT_SUPABASE_KEY}`, // 👈 dynamic access token
-      },
-    },
-  }
-);
+  const supabase = getSupabase();
 
   const fetchFlags = async () => {
     setState((prev) => ({ ...prev, loading: true }));
