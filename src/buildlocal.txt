@@ -1,0 +1,9 @@
+npm i -g yalc
+
+# in the library
+npm run build
+yalc publish
+
+# in the app
+yalc add @geejay/use-feature-flags
+npm i

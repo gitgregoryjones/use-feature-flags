@@ -27,7 +27,7 @@ export function useFeatureFlags(
   const [state, setState] = useAtom(featureFlagsAtom);
   const [envId, setEnvId] = useState<number | null>(null);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
-  const cleanupRef = useRef<() => void>();
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const apiKey = passedKey;
 
@@ -50,7 +50,7 @@ export function useFeatureFlags(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'api-key': apiKey,
+           ...(apiKey ? { 'api-key': apiKey } : {}),
         },
         body: JSON.stringify({ environment: sanitizedEnvironment }),
       });

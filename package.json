@@ -1,32 +1,35 @@
 {
   "name": "@geejay/use-feature-flags",
-  "version": "1.0.13",
-  "description": "React hook for feature flag management using Supabase",
-  "main": "dist/index.js",
+  "version": "1.0.16",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
-  "build": "rm -rf dist && tsc -p tsconfig.build.json"
-},
-
-  "keywords": ["feature flags", "supabase", "react", "hooks"],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-org/use-feature-flags.git"
+    "build": "tsup",
+    "prepack": "npm run build"
   },
-  "author": "GeeJay",
-  "license": "MIT",
-  "dependencies": {
-    "jotai": "^2.12.5"
+  "publishConfig": {
+  "access": "public"
   },
   "peerDependencies": {
-    "react": ">=16.8",
-    "@supabase/supabase-js": "^2.52.0"
+    "react": ">=16.8"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.52.0"
+    "@supabase/supabase-js": "^2.54.0",
+    "@types/react": "^18.3.23",
+    "jotai": "^2.13.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
   }
 }
