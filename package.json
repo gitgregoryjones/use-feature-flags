@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsup",
     "prepack": "npm run build"
+    "publish": "npm version patch && npm publish"
   },
   "publishConfig": {
     "access": "public"
