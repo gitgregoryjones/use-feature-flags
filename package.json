@@ -1,6 +1,6 @@
 {
   "name": "@geejay/use-feature-flags",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "type": "module",
   "exports": {
     ".": {
@@ -11,12 +11,17 @@
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "prepack": "npm run build"
   },
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "react": ">=16.8"
   },
