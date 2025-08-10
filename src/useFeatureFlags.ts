@@ -18,7 +18,7 @@ let initialized = false;
 
 export function useFeatureFlags(
   passedKey?: string,
-  environment = window.location.hostname || 'localhost'
+  environment = window?.location?.hostname || 'localhost'
 ) {
   const sanitizedEnvironment = useMemo(
     () => environment.replace(/:\d+$/, ''),
