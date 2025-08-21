@@ -121,7 +121,7 @@ export function useFeatureFlags(
   return {
     isActive: (key: string) => {
       const active = state.flags.some((f) => f.key === key && f.enabled === true);
-      console.log('[use-feature-flags] isActive', key, active);
+      process.env.DEBUG && console.log('[use-feature-flags] isActive', key, active);
       return active;
     },
     flags: state.flags,
