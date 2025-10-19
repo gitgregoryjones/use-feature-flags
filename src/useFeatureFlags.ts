@@ -32,7 +32,7 @@ export function useFeatureFlags(
   const apiKey = passedKey;
 
   useEffect(() => {
-    console.log(
+   process.env.DEBUG && console.log(
       '[use-feature-flags] initializing',
       `environment: ${sanitizedEnvironment}`,
       `apiKey provided: ${Boolean(apiKey)}`
