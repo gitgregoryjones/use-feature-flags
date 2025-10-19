@@ -7,3 +7,7 @@ yalc publish
 # in the app
 yalc add @geejay/use-feature-flags
 npm i
+
+
+# when finally ready to deploy the library publicly
+npm publish --access public
