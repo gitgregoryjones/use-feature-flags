@@ -2,9 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FeatureFlag, featureFlagsAtom } from './store';
 import { useAtom } from 'jotai';
-import { getSupabase, DEFAULT_SUPABASE_URL } from './supabaseClient';
-
-const EDGE_FN_URL = `${DEFAULT_SUPABASE_URL}/functions/v1/get-feature-flags`;
+import { getSupabase, getSupabaseUrl } from './supabaseClient';
+import { isDebugEnabled } from './env';
+const CACHE_KEY_PREFIX = 'use-feature-flags-cache';
 
 
 
@@ -14,7 +14,52 @@ type FlagState = {
   loading: boolean;
 };
 
+type CachedFlags = {
+  flags: FeatureFlag[];
+  envId: number | null;
+  updatedAt: number;
+};
+
 let initialized = false;
+
+function getCacheKey(environment: string) {
+  return `${CACHE_KEY_PREFIX}:${environment}`;
+}
+
+function getCachedFlags(environment: string): CachedFlags | null {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+
+  try {
+    const raw = window.localStorage.getItem(getCacheKey(environment));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedFlags;
+    if (!Array.isArray(parsed.flags)) return null;
+
+    return {
+      flags: parsed.flags,
+      envId: parsed.envId ?? null,
+      updatedAt: parsed.updatedAt ?? 0,
+    };
+  } catch (error) {
+    console.warn('[use-feature-flags] failed reading cache', error);
+    return null;
+  }
+}
+
+function setCachedFlags(environment: string, flags: FeatureFlag[], envId: number | null) {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+
+  try {
+    const payload: CachedFlags = {
+      flags,
+      envId,
+      updatedAt: Date.now(),
+    };
+    window.localStorage.setItem(getCacheKey(environment), JSON.stringify(payload));
+  } catch (error) {
+    console.warn('[use-feature-flags] failed writing cache', error);
+  }
+}
 
 export function useFeatureFlags(
   passedKey?: string,
@@ -32,21 +77,26 @@ export function useFeatureFlags(
   const apiKey = passedKey;
 
   useEffect(() => {
-   process.env.DEBUG && console.log(
-      '[use-feature-flags] initializing',
-      `environment: ${sanitizedEnvironment}`,
-      `apiKey provided: ${Boolean(apiKey)}`
-    );
+    if (isDebugEnabled()) {
+      console.log(
+        '[use-feature-flags] initializing',
+        `environment: ${sanitizedEnvironment}`,
+        `apiKey provided: ${Boolean(apiKey)}`
+      );
+    }
   }, [sanitizedEnvironment, apiKey]);
   const supabase = getSupabase();
+  const edgeFnUrl = useMemo(() => `${getSupabaseUrl()}/functions/v1/get-feature-flags`, []);
 
   const fetchFlags = async () => {
     setState((prev) => ({ ...prev, loading: true }));
 
-    console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
+    if (isDebugEnabled()) {
+      console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
+    }
 
     try {
-      const res = await fetch(EDGE_FN_URL, {
+      const res = await fetch(edgeFnUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,20 +108,36 @@ export function useFeatureFlags(
       const json = await res.json();
       if (!res.ok) {
         console.warn('Edge function error:', json?.error || res.statusText);
+        const cached = getCachedFlags(sanitizedEnvironment);
+        if (cached) {
+          setState({ flags: cached.flags, loading: false });
+          setEnvId(cached.envId);
+          return;
+        }
+
         setState({ flags: [], loading: false });
         return;
       }
 
       const flags = json.flags || [];
       setState({ flags, loading: false });
-      console.log('[use-feature-flags] fetched flags', flags);
+      if (isDebugEnabled()) {
+        console.log('[use-feature-flags] fetched flags', flags);
+      }
 
       // Store environment_id from first flag (assumes all have same env)
-      if (flags.length > 0 && flags[0].environment_id) {
-        setEnvId(flags[0].environment_id);
-      }
+      const nextEnvId = flags.length > 0 ? flags[0]?.environment_id ?? null : null;
+      setEnvId(nextEnvId);
+      setCachedFlags(sanitizedEnvironment, flags, nextEnvId);
     } catch (err: any) {
       console.error('Error fetching flags:', err.message);
+      const cached = getCachedFlags(sanitizedEnvironment);
+      if (cached) {
+        setState({ flags: cached.flags, loading: false });
+        setEnvId(cached.envId);
+        return;
+      }
+
       setState({ flags: [], loading: false });
     }
   };
@@ -121,14 +187,15 @@ export function useFeatureFlags(
   return {
     isActive: (key: string) => {
       const active = state.flags.some((f) => f.key === key && f.enabled === true);
-      process.env.DEBUG && console.log('[use-feature-flags] isActive', key, active);
+      if (isDebugEnabled()) {
+        console.log('[use-feature-flags] isActive', key, active);
+      }
       return active;
     },
     flags: state.flags,
     loading: state.loading,
   };
 }
-
 
 
 

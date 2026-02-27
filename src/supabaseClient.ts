@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { getEnvVar } from './env';
 
 // HMR-safe global singleton to avoid multiple GoTrueClient instances
 const GLOBAL_KEY = '__useff_supabase_singleton__';
@@ -10,14 +11,17 @@ declare global {
 
 export const DEFAULT_SUPABASE_URL = 'https://khppgsehvvlukzfdqbuo.supabase.co';
 
+export function getSupabaseUrl(): string {
+  return getEnvVar('NEXT_PUBLIC_SUPABASE_URL') || getEnvVar('VITE_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
+}
+
 export function getSupabase(): SupabaseClient {
   if (!globalThis[GLOBAL_KEY]) {
     // Prefer env vars; fallback are placeholders (replace in your app env)
-    const url =
-      (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_SUPABASE_URL) ||
-      DEFAULT_SUPABASE_URL;
+    const url = getSupabaseUrl();
     const anon =
-      (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY) ||
+      getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
+      getEnvVar('VITE_SUPABASE_ANON_KEY') ||
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtocHBnc2VodnZsdWt6ZmRxYnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2ODU1MzQsImV4cCI6MjA2ODI2MTUzNH0.8Z4VY4HFMm95UgO21c-DnDkbLPN_0mbDBZJPExaghDk';
 
     globalThis[GLOBAL_KEY] = createClient(url, anon, {
