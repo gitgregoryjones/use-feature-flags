@@ -2,9 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FeatureFlag, featureFlagsAtom } from './store';
 import { useAtom } from 'jotai';
-import { getSupabase, DEFAULT_SUPABASE_URL } from './supabaseClient';
-
-const EDGE_FN_URL = `${DEFAULT_SUPABASE_URL}/functions/v1/get-feature-flags`;
+import { getSupabase, getSupabaseUrl } from './supabaseClient';
 const CACHE_KEY_PREFIX = 'use-feature-flags-cache';
 
 
@@ -85,6 +83,7 @@ export function useFeatureFlags(
     );
   }, [sanitizedEnvironment, apiKey]);
   const supabase = getSupabase();
+  const edgeFnUrl = useMemo(() => `${getSupabaseUrl()}/functions/v1/get-feature-flags`, []);
 
   const fetchFlags = async () => {
     setState((prev) => ({ ...prev, loading: true }));
@@ -92,7 +91,7 @@ export function useFeatureFlags(
     console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
 
     try {
-      const res = await fetch(EDGE_FN_URL, {
+      const res = await fetch(edgeFnUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
