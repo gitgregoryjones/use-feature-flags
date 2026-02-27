@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FeatureFlag, featureFlagsAtom } from './store';
 import { useAtom } from 'jotai';
 import { getSupabase, getSupabaseUrl } from './supabaseClient';
+import { isDebugEnabled } from './env';
 const CACHE_KEY_PREFIX = 'use-feature-flags-cache';
 
 
@@ -76,11 +77,13 @@ export function useFeatureFlags(
   const apiKey = passedKey;
 
   useEffect(() => {
-   process.env.DEBUG && console.log(
-      '[use-feature-flags] initializing',
-      `environment: ${sanitizedEnvironment}`,
-      `apiKey provided: ${Boolean(apiKey)}`
-    );
+    if (isDebugEnabled()) {
+      console.log(
+        '[use-feature-flags] initializing',
+        `environment: ${sanitizedEnvironment}`,
+        `apiKey provided: ${Boolean(apiKey)}`
+      );
+    }
   }, [sanitizedEnvironment, apiKey]);
   const supabase = getSupabase();
   const edgeFnUrl = useMemo(() => `${getSupabaseUrl()}/functions/v1/get-feature-flags`, []);
@@ -88,7 +91,9 @@ export function useFeatureFlags(
   const fetchFlags = async () => {
     setState((prev) => ({ ...prev, loading: true }));
 
-    console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
+    if (isDebugEnabled()) {
+      console.log('[use-feature-flags] fetching flags for', sanitizedEnvironment);
+    }
 
     try {
       const res = await fetch(edgeFnUrl, {
@@ -116,7 +121,9 @@ export function useFeatureFlags(
 
       const flags = json.flags || [];
       setState({ flags, loading: false });
-      console.log('[use-feature-flags] fetched flags', flags);
+      if (isDebugEnabled()) {
+        console.log('[use-feature-flags] fetched flags', flags);
+      }
 
       // Store environment_id from first flag (assumes all have same env)
       const nextEnvId = flags.length > 0 ? flags[0]?.environment_id ?? null : null;
@@ -180,7 +187,9 @@ export function useFeatureFlags(
   return {
     isActive: (key: string) => {
       const active = state.flags.some((f) => f.key === key && f.enabled === true);
-      process.env.DEBUG && console.log('[use-feature-flags] isActive', key, active);
+      if (isDebugEnabled()) {
+        console.log('[use-feature-flags] isActive', key, active);
+      }
       return active;
     },
     flags: state.flags,
